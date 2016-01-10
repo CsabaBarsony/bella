@@ -2,29 +2,32 @@ var cs = require('../helpers/cs');
 var Quest = require('../classes').Quest;
 var User = require('../classes').User;
 
+
+
 var QuestPage = React.createClass({
 	getInitialState: function() {
 		return {
 			status: 'init',
-			quest: {}
+			quest: {},
+			loggedIn: bella.data.user.status === bella.constants.userStatus.LOGGED_IN
 		};
 	},
 	componentDidMount: function() {
 		var questId = cs.getQueryValue(document.location.search, 'quest_id');
 
-		bella.event.subscribe('userStatusChange', (details) => {
-			this.setState({ status: details.status });
+		bella.data.user.subscribe((user) => {
+			this.setState({ loggedIn: user.status === bella.constants.userStatus.LOGGED_IN});
 		});
 
 		if(questId) {
 			cs.get('/quest?quest_id=' + questId, (response) => {
-				if(response.result === 'success') {
+				if(response.result === 'SUCCESS') {
 					this.setState({
 						quest: response.data,
 						status: 'ready'
 					});
 				}
-				else if(response.result === 'fail') {
+				else if(response.result === 'FAIL') {
 					this.setState({
 						status: 'not_found'
 					});
@@ -56,7 +59,6 @@ var QuestPage = React.createClass({
 		else if(this.state.status === 'error') {
 			page = (<div>error</div>);
 		}
-		// Itt tartok: account status és component status összevesznek.
 		else if(this.state.status === 'ready') {
 			page = (
 				<div className="bc-quest-page">
@@ -64,7 +66,7 @@ var QuestPage = React.createClass({
 					<RCQuest
 						quest={this.state.quest}
 						own={this.state.quest.user.id === cs.cookie('user_id', document.cookie)}
-						loggedIn={this.state.status === 'loggedIn'} />
+						loggedIn={this.state.loggedIn} />
 				</div>
 			);
 		}

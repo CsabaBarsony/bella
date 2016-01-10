@@ -2,39 +2,36 @@ var cs = require('../../helpers/cs');
 
 var User = React.createClass({
 	getInitialState: function() {
+		var user = bella.data.user.get();
+
 		return {
-			status: 'init',
+			status: user.status,
+			userName: user.name,
 			opened: false,
 			errorMessage: ''
 		}
 	},
 	componentDidMount: function() {
+		bella.data.user.subscribe((user) => {
+			this.setState({
+				status: user.status,
+				userName: user.name
+			});
+		});
+
 		if(cs.cookie('user_id', document.cookie) && cs.cookie('token', document.cookie)) {
 			cs.get('userstatus', (response) => {
-				if(response.status === 'guest') {
-					this.setState({ status: 'guest' });
-					bella.event.emit('userStatusChange', { status: response.status }, this);
-				}
-				else if(response.status === 'loggedIn') {
-					bella.event.emit('userStatusChange', { status: response.status }, this);
-					this.setState({
-						status: 'loggedIn',
-						user: response.data
-					});
+				if(response.result === bella.constants.server.result.SUCCESS) {
+					bella.data.user.set(response.data.user, this);
 				}
 			});
 		}
 		else {
-			this.setState({ status: 'guest' });
+			bella.user.set('status', bella.constants.userStatus.GUEST, this);
 		}
 	},
 	render: function() {
-		if(this.state.status === 'init') {
-			return (
-				<div>initializing...</div>
-			);
-		}
-		else if(this.state.status === 'guest') {
+		if(this.state.status === bella.constants.userStatus.GUEST) {
 			var errorMessage = this.state.errorMessage ?
 				(
 					<div>{this.state.errorMessage}</div>
@@ -56,7 +53,7 @@ var User = React.createClass({
 				</div>
 			);
 		}
-		else if(this.state.status === 'loggedIn') {
+		else if(this.state.status === bella.constants.userStatus.LOGGED_IN) {
 			var popup = this.state.opened ? (
 				<div className="bc-user-popup">
 					<a href="" onClick={this.logout}>logout</a>
@@ -65,7 +62,7 @@ var User = React.createClass({
 
 			return (
 				<div className="bc-user">
-					<a href="" onClick={this.click}>{this.state.user.name}</a>
+					<a href="" onClick={this.click}>{this.state.userName}</a>
 					{popup}
 				</div>
 			);
@@ -80,31 +77,29 @@ var User = React.createClass({
 			username: this.refs.name.value,
 			password: this.refs.password.value
 		}, (response) => {
-			if(response.status === 'loggedIn') {
-				bella.event.emit('userStatusChange', { status: response.status }, this);
+			if(response.result === bella.constants.server.result.SUCCESS) {
+				bella.data.user.set(response.data, this);
 				this.setState({
 					errorMessage: '',
-					status: 'loggedIn',
-					user: response.data,
 					opened: false
 				});
 			}
-			else if(response.status === 'guest') {
-				bella.event.emit('userStatusChange', { status: response.status }, this);
-				this.setState({ errorMessage: response.errorMessage });
+			else if(response.result = bella.constants.server.result.FAIL) {
+				bella.data.user.set({ status: bella.constants.userStatus.GUEST }, this);
+				this.setState({ errorMessage: response.data.errorMessage });
 			}
 		});
 	},
 	logout: function(e) {
 		e.preventDefault();
 		cs.get('logout', (response) => {
-			if(response.status === 'guest') {
-				bella.event.emit('userStatusChange', { status: response.status }, this);
-				this.setState({
-					status: 'guest',
-					username: '',
-					opened: false
-				});
+			if(response.result === bella.constants.server.result.SUCCESS) {
+				bella.data.user.set({
+					id: null,
+					name: '',
+					status: bella.constants.userStatus.GUEST
+				}, this);
+				this.setState({ opened: false });
 			}
 		});
 	}

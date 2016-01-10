@@ -98,15 +98,17 @@ app.post("/login", function(req, res){
 		user.token = random;
 		res.cookie('user_id', user.id);
 		res.cookie('token', random);
+		var userData = getUser(user.id);
+		userData.status = 'LOGGED_IN';
+
 		response = {
-			result: 'success',
-			status: 'loggedIn',
-			data: getUser(user.id)
+			result: 'SUCCESS',
+			data: userData
 		}
 	}
 	else {
 		response = {
-			status: 'guest',
+			result: 'FAIL',
 			errorMessage: 'Wrong username or password'
 		};
 	}
@@ -117,16 +119,24 @@ app.get('/userstatus', function(req, res) {
 	var response = {};
 	var user = users[req.cookies.user_id];
 	if(user && user.token === req.cookies.token) {
+		var userData = getUser(user.id);
+		userData.status = 'LOGGED_IN';
+
 		response = {
-			result: 'success',
-			status: 'loggedIn',
-			data: getUser(user.id)
+			result: 'SUCCESS',
+			data: {
+				user: userData
+			}
 		}
 	}
 	else {
 		response = {
-			result: 'fail',
-			status: 'guest'
+			result: 'FAIL',
+			data: {
+				user: {
+					status: 'GUEST'
+				}
+			}
 		}
 	}
 	res.send(response);
@@ -140,12 +150,19 @@ app.get('/logout', function(req, res) {
 	}
 
 	res.cookie('token', 'expired');
-	res.send({ status: 'guest' });
+	res.send({
+		result: 'SUCCESS',
+		data: {
+			user: {
+				status: 'GUEST'
+			}
+		}
+	});
 });
 
 app.get('/quest_list', function(req, res) {
 	res.send({
-		result: 'success',
+		result: 'SUCCESS',
 		data: _.map(questList, q => getQuest(q.id))
 	});
 });
@@ -154,13 +171,13 @@ app.get('/quest', function(req, res) {
 	var data = getQuest(req.query.quest_id);
 	if(data) {
 		res.send({
-			result: 'success',
+			result: 'SUCCESS',
 			data: data
 		});
 	}
 	else {
 		res.send({
-			result: 'fail'
+			result: 'FAIL'
 		});
 	}
 });
@@ -169,13 +186,13 @@ app.get('/user', function(req, res) {
 	var data = getUser(req.query.user_id);
 	if(data) {
 		res.send({
-			result: 'success',
+			result: 'SUCCESS',
 			data: data
 		});
 	}
 	else {
 		res.send({
-			result: 'fail'
+			result: 'FAIL'
 		});
 	}
 });

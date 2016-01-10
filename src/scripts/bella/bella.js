@@ -1,23 +1,52 @@
 (function() {
-	var events = [];
-
-	var event = {
-		subscribe: function(name, callback) {
-			events.push({
-				name: name,
-				callback: callback
-			});
+	var data = {};
+	var dataStore = {};
+	var constants = {
+		event: {
+			USER_STATUS_CHANGE: 'USER_STATUS_CHANGE'
 		},
-		emit: function(name, options, emitter) {
-			events.forEach(function(event) {
-				if(event.name === name) {
-					event.callback(options, emitter);
-				}
-			});
+		userStatus: {
+			GUEST: 'GUEST',
+			LOGGED_IN: 'LOGGED_IN'
+		},
+		server: {
+			result: {
+				SUCCESS: 'SUCCESS',
+				FAIL: 'FAIL'
+			}
 		}
 	};
 
+	function createData(dataName, dataValue) {
+		if(data[dataName]) return;
+
+		dataStore[dataName] = {
+			data: dataValue,
+			callbacks: []
+		};
+
+		data[dataName] = {
+			get: function() {
+				return dataStore[dataName].data;
+			},
+			set: function(value, emitter) {
+				_.merge(dataStore[dataName].data, value);
+				dataStore[dataName].callbacks.forEach((callback) => callback(dataStore[dataName].data, emitter));
+			},
+			subscribe: function(callback) {
+				dataStore[dataName].callbacks.push(callback);
+			}
+		}
+	}
+
+	createData('user', {
+		id: null,
+		name: '',
+		status: constants.userStatus.GUEST,
+	});
+
 	window.bella = {
-		event: event
+		constants: constants,
+		data: data
 	};
 })();

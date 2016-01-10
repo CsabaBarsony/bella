@@ -9,7 +9,7 @@ var babelify = require('babelify');
 
 function compileUser() {
 	return browserify('./src/scripts/components/user/user.js', { debug: true })
-		.transform("babelify", { presets: ["es2015", "react"] })
+		.transform("babelify", { presets: ["es2015", "react"], sourceMaps: false })
 		.bundle()
 		.pipe(source('user.js'))
 		.pipe(gulp.dest('./public/js/'));
@@ -17,7 +17,7 @@ function compileUser() {
 
 function compileHomePage() {
 	return browserify('./src/scripts/components/home_page/home_page.js', { debug: true })
-		.transform("babelify", { presets: ["es2015", "react"] })
+		.transform("babelify", { presets: ["es2015", "react"], sourceMaps: false })
 		.bundle()
 		.pipe(source('home_page.js'))
 		.pipe(gulp.dest('./public/js/'));
@@ -25,7 +25,7 @@ function compileHomePage() {
 
 function compileHelpers() {
 	return browserify('./src/scripts/helpers/cs.js', { debug: true })
-		.transform("babelify", { presets: ["es2015", "react"] })
+		.transform("babelify", { presets: ["es2015", "react"], sourceMaps: false })
 		.bundle()
 		.pipe(source('cs.js'))
 		.pipe(gulp.dest('./public/js/'));
@@ -33,7 +33,7 @@ function compileHelpers() {
 
 function compileBella() {
 	return browserify('./src/scripts/bella/bella.js', { debug: true })
-		.transform("babelify", { presets: ["es2015", "react"] })
+		.transform("babelify", { presets: ["es2015", "react"], sourceMaps: false })
 		.bundle()
 		.pipe(source('bella.js'))
 		.pipe(gulp.dest('./public/js/'));
@@ -41,7 +41,7 @@ function compileBella() {
 
 function compileQuestListPage() {
 	return browserify('./src/scripts/quest_list_page/quest_list_page.js', { debug: true })
-		.transform("babelify", { presets: ["es2015", "react"] })
+		.transform("babelify", { presets: ["es2015", "react"], sourceMaps: false })
 		.bundle()
 		.pipe(source('quest_list_page.js'))
 		.pipe(gulp.dest('./public/js/'));
@@ -49,7 +49,7 @@ function compileQuestListPage() {
 
 function compileQuestPage() {
 	return browserify('./src/scripts/quest_page/quest_page.js', { debug: true })
-		.transform("babelify", { presets: ["es2015", "react"] })
+		.transform("babelify", { presets: ["es2015", "react"], sourceMaps: false })
 		.bundle()
 		.pipe(source('quest_page.js'))
 		.pipe(gulp.dest('./public/js/'));
