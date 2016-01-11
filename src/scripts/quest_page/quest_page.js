@@ -1,13 +1,17 @@
 var cs = require('../helpers/cs');
 var Quest = require('../classes').Quest;
 var User = require('../classes').User;
-
-
+var statuses = {
+	INIT: 'INIT',
+	READY: 'READY',
+	NOT_FOUND: 'NOT_FOUND',
+	ERROR: 'ERROR'
+};
 
 var QuestPage = React.createClass({
 	getInitialState: function() {
 		return {
-			status: 'init',
+			status: statuses.INIT,
 			quest: {},
 			loggedIn: bella.data.user.status === bella.constants.userStatus.LOGGED_IN
 		};
@@ -21,21 +25,21 @@ var QuestPage = React.createClass({
 
 		if(questId) {
 			cs.get('/quest?quest_id=' + questId, (response) => {
-				if(response.result === 'SUCCESS') {
+				if(response.result === bella.constants.server.result.SUCCESS) {
 					this.setState({
 						quest: response.data,
-						status: 'ready'
+						status: statuses.READY
 					});
 				}
-				else if(response.result === 'FAIL') {
+				else if(response.result === bella.constants.server.result.FAIL) {
 					this.setState({
-						status: 'not_found'
+						status: statuses.NOT_FOUND
 					});
 				}
 				else {
 					console.error('Quest request error');
 					this.setState({
-						status: 'error'
+						status: statuses.ERROR
 					});
 				}
 			});
@@ -43,23 +47,23 @@ var QuestPage = React.createClass({
 		else {
 			this.setState({
 				quest: new Quest(),
-				status: 'ready'
+				status: statuses.READY
 			});
 		}
 	},
 	render: function() {
 		var page;
 
-		if(this.state.status === 'init') {
+		if(this.state.status === statuses.INIT) {
 			page = (<div>init</div>);
 		}
-		else if(this.state.status === 'not_found') {
+		else if(this.state.status === statuses.NOT_FOUND) {
 			page = (<div>not found</div>);
 		}
-		else if(this.state.status === 'error') {
+		else if(this.state.status === statuses.ERROR) {
 			page = (<div>error</div>);
 		}
-		else if(this.state.status === 'ready') {
+		else if(this.state.status === statuses.READY) {
 			page = (
 				<div className="bc-quest-page">
 					<h1>Quest</h1>
