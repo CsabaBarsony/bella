@@ -1,12 +1,12 @@
 var cs = require('../helpers/cs');
-var Quest = require('../classes').Quest;
-var User = require('../classes').User;
+var factory = require('../factory');
 var statuses = {
 	INIT: 'INIT',
 	READY: 'READY',
 	NOT_FOUND: 'NOT_FOUND',
 	ERROR: 'ERROR'
 };
+var update = require('react-addons-update');
 
 var QuestPage = React.createClass({
 	getInitialState: function() {
@@ -27,7 +27,7 @@ var QuestPage = React.createClass({
 			cs.get('/quest?quest_id=' + questId, (response) => {
 				if(response.result === bella.constants.server.result.SUCCESS) {
 					this.setState({
-						quest: response.data,
+						quest: factory.quest(response.data.user, response.data),
 						status: statuses.READY
 					});
 				}
@@ -46,7 +46,7 @@ var QuestPage = React.createClass({
 		}
 		else {
 			this.setState({
-				quest: new Quest(),
+				quest: factory.quest(bella.data.user.get()),
 				status: statuses.READY
 			});
 		}
@@ -69,13 +69,17 @@ var QuestPage = React.createClass({
 					<h1>Quest</h1>
 					<RCQuest
 						quest={this.state.quest}
-						own={this.state.quest.user.id === cs.cookie('user_id', document.cookie)}
-						loggedIn={this.state.loggedIn} />
+						own={this.state.quest.user && this.state.quest.user.id === cs.cookie('user_id', document.cookie)}
+						loggedIn={this.state.loggedIn}
+						save={this.save} />
 				</div>
 			);
 		}
 
 		return page;
+	},
+	save: function(title, description) {
+		this.setState({ quest: update(this.state.quest, { title: { $set: title }, description: { $set: description } }) })
 	}
 });
 
@@ -84,18 +88,19 @@ var RCQuest = React.createClass({
 		return { edit: !this.props.quest.id };
 	},
 	render: function() {
+		console.log(this.props.quest);
 		var toggleEditButton = (this.props.own && this.props.loggedIn) ? (
 			<button onClick={this.toggleEdit}>{this.state.edit ? 'Cancel' : 'Edit'}</button>
 		) : null;
-		var saveButton = this.props.quest.dirty ? (
-			<button>Save</button>
+		var saveButton = this.props.quest.dirty || this.state.edit ? (
+			<button onClick={this.save}>Save</button>
 		) : null;
-		var title = this.props.quest.id ?
-			(<span>{this.props.quest.title}</span>) :
-			(<input type="text" defaultValue={this.props.quest.title} />);
-		var description = this.props.quest.id ?
-			(<span>{this.props.quest.description}</span>) :
-			(<textarea cols="30" rows="10" defaultValue={this.props.quest.description}></textarea>);
+		var title = this.state.edit ?
+			(<input type="text" defaultValue={this.props.quest.title} ref="title" />) :
+			(<span>{this.props.quest.title}</span>);
+		var description = this.state.edit ?
+			(<textarea cols="30" rows="10" defaultValue={this.props.quest.description} ref="description"></textarea>) :
+			(<span>{this.props.quest.description}</span>);
 		var user = this.props.quest.user ?
 			(<span>{this.props.quest.user.name}</span>) :
 			null;
@@ -112,6 +117,10 @@ var RCQuest = React.createClass({
 	},
 	toggleEdit: function() {
 		this.setState({ edit: !this.state.edit });
+	},
+	save: function() {
+		this.props.save(this.refs.title.value, this.refs.description.value);
+		this.setState({ edit: false });
 	}
 });
 

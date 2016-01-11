@@ -42,7 +42,7 @@
 	createData('user', {
 		id: null,
 		name: '',
-		status: constants.userStatus.GUEST,
+		status: constants.userStatus.GUEST
 	});
 
 	window.bella = {
