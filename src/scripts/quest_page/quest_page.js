@@ -3,6 +3,7 @@ var factory = require('../factory');
 var statuses = {
 	INIT: 'INIT',
 	READY: 'READY',
+	SAVING: 'SAVING',
 	NOT_FOUND: 'NOT_FOUND',
 	ERROR: 'ERROR'
 };
@@ -63,6 +64,9 @@ var QuestPage = React.createClass({
 		else if(this.state.status === statuses.ERROR) {
 			page = (<div>error</div>);
 		}
+		else if(this.state.status === statuses.SAVING) {
+			page = (<div>saving</div>);
+		}
 		else if(this.state.status === statuses.READY) {
 			page = (
 				<div className="bc-quest-page">
@@ -79,7 +83,20 @@ var QuestPage = React.createClass({
 		return page;
 	},
 	save: function(title, description) {
-		this.setState({ quest: update(this.state.quest, { title: { $set: title }, description: { $set: description } }) })
+		this.setState({ status: statuses.SAVING });
+
+		cs.post('/quest', update(this.state.quest, { title: { $set: title }, description: { $set: description } }), (response) => {
+			if(response.result === bella.constants.server.result.SUCCESS) {
+				window.location.href = '/quest_list.html';
+				//this.setState({
+				//	quest: factory.quest(response.data.user, response.data),
+				//	status: statuses.READY
+				//});
+			}
+			if(response.result === bella.constants.server.result.FAIL) {
+				console.error('post quest error');
+			}
+		});
 	}
 });
 
@@ -88,7 +105,6 @@ var RCQuest = React.createClass({
 		return { edit: !this.props.quest.id };
 	},
 	render: function() {
-		console.log(this.props.quest);
 		var toggleEditButton = (this.props.own && this.props.loggedIn) ? (
 			<button onClick={this.toggleEdit}>{this.state.edit ? 'Cancel' : 'Edit'}</button>
 		) : null;
@@ -101,17 +117,32 @@ var RCQuest = React.createClass({
 		var description = this.state.edit ?
 			(<textarea cols="30" rows="10" defaultValue={this.props.quest.description} ref="description"></textarea>) :
 			(<span>{this.props.quest.description}</span>);
-		var user = this.props.quest.user ?
-			(<span>{this.props.quest.user.name}</span>) :
+		var user = this.props.quest.user.id ?
+			(<tr>
+				<td>user:</td>
+				<td>{this.props.quest.user.name}</td>
+			</tr>) :
 			null;
 
 		return (
 			<div>
-				<span>user: </span>{user}<br />
-				<span>title: </span>{title}<br />
-				<span>description: </span>{description}<br />
-				{saveButton}
-				{toggleEditButton}
+				<table>
+					<tbody>
+						{user}
+						<tr>
+							<td>title:</td>
+							<td>{title}</td>
+						</tr>
+						<tr>
+							<td>description:</td>
+							<td>{description}</td>
+						</tr>
+						<tr>
+							<td>{saveButton}
+								{toggleEditButton}</td>
+						</tr>
+					</tbody>
+				</table>
 			</div>
 		);
 	},

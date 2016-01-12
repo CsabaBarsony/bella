@@ -58,6 +58,15 @@ function getQuest(id) {
 	}
 }
 
+function setQuest(quest, rId, userId) {
+	return {
+		id: quest.id || rId,
+		title: quest.title,
+		description: quest.description,
+		userId: quest.user.id || userId
+	};
+}
+
 function getUser(id) {
 	var user = users[id];
 
@@ -67,14 +76,19 @@ function getUser(id) {
 	}
 }
 
-function randomString() {
+function randomString(length) {
 	var charSet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 	var randomString = '';
-	for (var i = 0; i < 32; i++) {
+	for (var i = 0; i < length; i++) {
 		var randomPoz = Math.floor(Math.random() * charSet.length);
-		randomString += charSet.substring(randomPoz, randomPoz+1);
+		randomString += charSet.substring(randomPoz, randomPoz + 1);
 	}
 	return randomString;
+}
+
+function authorize(req) {
+	if(!req.cookies || !req.cookies.user_id || !req.cookies.token ) return false;
+	return users[req.cookies.user_id].token === req.cookies.token;
 }
 
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -94,7 +108,7 @@ app.post("/login", function(req, res){
 		return user.name === req.body.username;
 	});
 	if(user.password === req.body.password) {
-		var random = randomString();
+		var random = randomString(32);
 		user.token = random;
 		res.cookie('user_id', user.id);
 		res.cookie('token', random);
@@ -179,6 +193,36 @@ app.get('/quest', function(req, res) {
 		res.send({
 			result: 'FAIL'
 		});
+	}
+});
+
+app.post('/quest', function(req, res) {
+	if(authorize(req)) {
+		if(req.body.id) {
+			if(questList[req.body.id].userId === req.cookies.user_id) {
+				questList[req.body.id] = setQuest(req.body);
+				res.send({
+					result: 'SUCCESS',
+					data: getQuest(req.body.id)
+				});
+				console.log(questList);
+			}
+			else {
+				res.send({ result: 'FAIL' });
+			}
+		}
+		else {
+			var rId = randomString(10);
+			questList[rId] = setQuest(req.body, rId, req.cookies.user_id);
+			console.log(questList);
+			res.send({
+				result: 'SUCCESS',
+				data: getQuest(rId)
+			});
+		}
+	}
+	else {
+		res.send({ result: 'FAIL' });
 	}
 });
 

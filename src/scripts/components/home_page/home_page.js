@@ -1,7 +1,7 @@
 var HomePage = React.createClass({
 	componentDidMount: function() {
-		bella.event.subscribe('userStatusChange', function(options, emitter) {
-			console.log('user status change', options.status);
+		bella.data.user.subscribe((user) => {
+			// do what you want!
 		});
 	},
 	render: function() {
