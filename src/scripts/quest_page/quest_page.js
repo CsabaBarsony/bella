@@ -8,6 +8,7 @@ var statuses = {
 	ERROR: 'ERROR'
 };
 var update = require('react-addons-update');
+var server = require('../server');
 
 var QuestPage = React.createClass({
 	getInitialState: function() {
@@ -25,22 +26,18 @@ var QuestPage = React.createClass({
 		});
 
 		if(questId) {
-			cs.get('/quest?quest_id=' + questId, (response) => {
-				if(response.result === bella.constants.server.result.SUCCESS) {
+			server.data.wish.get(questId, (response, quest) => {
+			//cs.get('/quest?quest_id=' + questId, (response) => {
+				if(response.result) {
 					this.setState({
-						quest: factory.quest(response.data.user, response.data),
+						quest: quest,
 						status: statuses.READY
 					});
 				}
-				else if(response.result === bella.constants.server.result.FAIL) {
+				else {
+					console.log('get quest error', response.message)
 					this.setState({
 						status: statuses.NOT_FOUND
-					});
-				}
-				else {
-					console.error('Quest request error');
-					this.setState({
-						status: statuses.ERROR
 					});
 				}
 			});
@@ -138,8 +135,7 @@ var RCQuest = React.createClass({
 							<td>{description}</td>
 						</tr>
 						<tr>
-							<td>{saveButton}
-								{toggleEditButton}</td>
+							<td>{saveButton} {toggleEditButton}</td>
 						</tr>
 					</tbody>
 				</table>

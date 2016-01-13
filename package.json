@@ -16,6 +16,7 @@
     "react": "^0.12.2",
     "react-router": "^0.12.0",
     "reactify": "^1.0.0",
+    "schema-inspector": "^1.6.4",
     "streamify": "^0.2.4",
     "vinyl-source-stream": "^1.0.0"
   },
