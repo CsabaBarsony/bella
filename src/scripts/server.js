@@ -6,13 +6,16 @@ module.exports = {
     data: {
         wish: {
             get: function(id, callback) {
-                cs.get('/quest?quest_id' + id, (response) => {
-                    if(response.result === bella.constants.server.result.SUCCESS) {
-                        var sResult = inspector.validation(schemas.wish, response.data);
-                        debugger
+                cs.get('/wish?id=' + id, (status, wish) => {
+                    if(status === bella.constants.response.SUCCESS) {
+						var validation = inspector.validate(schemas.wish.server, wish);
+						if(!validation.valid) {
+							console.error('wish validation error', validation.format());
+						}
+						callback({ success: true }, schemas.wish.serverToClient(wish));
                     }
-                    else if(response.result === bella.constants.server.result.FAIL) {
-
+                    else if(status === bella.constants.response.NOT_FOUND) {
+						callback({ success: false, message: 'Wish not found' });
                     }
                 });
             },

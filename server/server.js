@@ -181,19 +181,9 @@ app.get('/quest_list', function(req, res) {
 	});
 });
 
-app.get('/quest', function(req, res) {
-	var data = getQuest(req.query.quest_id);
-	if(data) {
-		res.send({
-			result: 'SUCCESS',
-			data: data
-		});
-	}
-	else {
-		res.send({
-			result: 'FAIL'
-		});
-	}
+app.get('/wish', function(req, res) {
+	var data = getQuest(req.query.id);
+	data ? res.send(data) : res.status(404).send();
 });
 
 app.post('/quest', function(req, res) {
@@ -227,16 +217,6 @@ app.post('/quest', function(req, res) {
 });
 
 app.get('/user', function(req, res) {
-	var data = getUser(req.query.user_id);
-	if(data) {
-		res.send({
-			result: 'SUCCESS',
-			data: data
-		});
-	}
-	else {
-		res.send({
-			result: 'FAIL'
-		});
-	}
+	var data = getUser(req.query.id);
+	data ? res.send(data) : res.status(404).send();
 });

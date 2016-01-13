@@ -26,16 +26,15 @@ var QuestPage = React.createClass({
 		});
 
 		if(questId) {
-			server.data.wish.get(questId, (response, quest) => {
-			//cs.get('/quest?quest_id=' + questId, (response) => {
-				if(response.result) {
+			server.data.wish.get(questId, (result, wish) => {
+				if(result.success) {
 					this.setState({
-						quest: quest,
+						quest: wish,
 						status: statuses.READY
 					});
 				}
 				else {
-					console.log('get quest error', response.message)
+					console.log(result.message);
 					this.setState({
 						status: statuses.NOT_FOUND
 					});

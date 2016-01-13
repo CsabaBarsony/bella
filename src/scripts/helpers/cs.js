@@ -2,15 +2,16 @@ var cs = {
 	log: function(text){
 		console.log(text);
 	},
-	get: function(url, success){
+	get: function(url, callback){
 		var xhr = new XMLHttpRequest();
 
 		xhr.onreadystatechange = function() {
 			if (xhr.readyState === XMLHttpRequest.DONE) {
 				if (xhr.status === 200) {
-					success(JSON.parse(xhr.response));
-				} else {
-					console.error('ajax get error');
+					callback(xhr.status, JSON.parse(xhr.response));
+				}
+				else if (xhr.status === 404) {
+					callback(xhr.status);
 				}
 			}
 		};

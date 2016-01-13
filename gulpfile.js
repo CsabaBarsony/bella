@@ -101,7 +101,7 @@ gulp.task("watch", function() {
 	gulp.watch('./src/scripts/bella/**/*.js', ['compileBella']);
 	gulp.watch('./src/scripts/quest_list_page/**/*.js', ['compileQuestListPage']);
 	gulp.watch('./src/scripts/quest_page/**/*.js', ['compileQuestPage']);
-	gulp.watch('./src/scripts/helpers/**/*.js', [
+	gulp.watch('./src/scripts/**/*.js', [
 		'compileHomePage',
 		'compileHelpers',
 		'compileBella',

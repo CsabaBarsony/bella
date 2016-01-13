@@ -9,11 +9,9 @@
 			GUEST: 'GUEST',
 			LOGGED_IN: 'LOGGED_IN'
 		},
-		server: {
-			result: {
-				SUCCESS: 'SUCCESS',
-				FAIL: 'FAIL'
-			}
+		response: {
+			SUCCESS: 200,
+			NOT_FOUND: 404
 		}
 	};
 
