@@ -8,24 +8,33 @@ var cs = {
 		xhr.onreadystatechange = function() {
 			if (xhr.readyState === XMLHttpRequest.DONE) {
 				if (xhr.status === 200) {
-					callback(xhr.status, JSON.parse(xhr.response));
+					var response = xhr.response ? JSON.parse(xhr.response) : null;
+					callback(xhr.status, response);
 				}
 				else if (xhr.status === 404) {
 					callback(xhr.status);
+				}
+				else {
+					console.error('ajax get error');
 				}
 			}
 		};
 		xhr.open('GET', url);
 		xhr.send();
 	},
-	post: function(url, data, success){
+	post: function(url, data, callback){
 		var xhr = new XMLHttpRequest();
 
 		xhr.onreadystatechange = function() {
 			if (xhr.readyState === XMLHttpRequest.DONE) {
 				if (xhr.status === 200) {
-					success(JSON.parse(xhr.response));
-				} else {
+					var response = xhr.response ? JSON.parse(xhr.response) : null;
+					callback(xhr.status, response);
+				}
+				else if(xhr.status === 404) {
+					callback(xhr.status);
+				}
+				else {
 					console.error('ajax post error');
 				}
 			}

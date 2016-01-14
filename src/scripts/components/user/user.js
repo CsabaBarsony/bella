@@ -1,8 +1,10 @@
 var cs = require('../../helpers/cs');
+var schemas = require('../../schemas');
+var server = require('../../server');
 
 var User = React.createClass({
 	getInitialState: function() {
-		var user = bella.data.user.get();
+		var user = schemas.user.blank();
 
 		return {
 			status: user.status,
@@ -20,10 +22,8 @@ var User = React.createClass({
 		});
 
 		if(cs.cookie('user_id', document.cookie) && cs.cookie('token', document.cookie)) {
-			cs.get('userstatus', (response) => {
-				if(response.result === bella.constants.server.result.SUCCESS) {
-					bella.data.user.set(response.data.user, this);
-				}
+			server.userStatus.get((result, userStatus) => {
+				bella.data.user.set(userStatus, this);
 			});
 		}
 		else {
@@ -73,32 +73,28 @@ var User = React.createClass({
 		this.setState({ opened: !this.state.opened });
 	},
 	login: function() {
-		cs.post('login', {
+		server.login({
 			username: this.refs.name.value,
 			password: this.refs.password.value
-		}, (response) => {
-			if(response.result === bella.constants.server.result.SUCCESS) {
-				bella.data.user.set(response.data, this);
+		}, (result, data) => {
+			if(result.success) {
+				bella.data.user.set(data, this);
 				this.setState({
 					errorMessage: '',
 					opened: false
 				});
 			}
-			else if(response.result = bella.constants.server.result.FAIL) {
+			else {
 				bella.data.user.set({ status: bella.constants.userStatus.GUEST }, this);
-				this.setState({ errorMessage: response.data.errorMessage });
+				this.setState({ errorMessage: 'Wrong username or password' });
 			}
 		});
 	},
 	logout: function(e) {
 		e.preventDefault();
-		cs.get('logout', (response) => {
-			if(response.result === bella.constants.server.result.SUCCESS) {
-				bella.data.user.set({
-					id: null,
-					name: '',
-					status: bella.constants.userStatus.GUEST
-				}, this);
+		server.logout((result) => {
+			if(result.success) {
+				bella.data.user.set(schemas.user.blank(), this);
 				this.setState({ opened: false });
 			}
 		});

@@ -103,7 +103,6 @@ app.listen(portNumber);
 console.log("Server is running on port " + portNumber + "...");
 
 app.post("/login", function(req, res){
-	var response = {};
 	var user = _.find(users, (user) => {
 		return user.name === req.body.username;
 	});
@@ -115,45 +114,26 @@ app.post("/login", function(req, res){
 		var userData = getUser(user.id);
 		userData.status = 'LOGGED_IN';
 
-		response = {
-			result: 'SUCCESS',
-			data: userData
-		}
+		res.send(userData);
 	}
 	else {
-		response = {
-			result: 'FAIL',
-			errorMessage: 'Wrong username or password'
-		};
+		res.status(404).send();
 	}
-	res.send(response);
 });
 
-app.get('/userstatus', function(req, res) {
-	var response = {};
+app.get('/userStatus', function(req, res) {
 	var user = users[req.cookies.user_id];
-	if(user && user.token === req.cookies.token) {
+	if(user) {
 		var userData = getUser(user.id);
-		userData.status = 'LOGGED_IN';
-
-		response = {
-			result: 'SUCCESS',
-			data: {
-				user: userData
-			}
+		if(user.token === req.cookies.token) {
+			userData.status = 'LOGGED_IN';
 		}
-	}
-	else {
-		response = {
-			result: 'FAIL',
-			data: {
-				user: {
-					status: 'GUEST'
-				}
-			}
+		else {
+			userData.status = 'GUEST';
 		}
+		res.send(userData);
 	}
-	res.send(response);
+	res.status(404).send();
 });
 
 app.get('/logout', function(req, res) {
@@ -163,15 +143,7 @@ app.get('/logout', function(req, res) {
 		user.token = false;
 	}
 
-	res.cookie('token', 'expired');
-	res.send({
-		result: 'SUCCESS',
-		data: {
-			user: {
-				status: 'GUEST'
-			}
-		}
-	});
+	res.cookie('token', 'expired').send();
 });
 
 app.get('/quest_list', function(req, res) {

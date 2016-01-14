@@ -10,7 +10,7 @@
 			LOGGED_IN: 'LOGGED_IN'
 		},
 		response: {
-			SUCCESS: 200,
+			OK: 200,
 			NOT_FOUND: 404
 		}
 	};

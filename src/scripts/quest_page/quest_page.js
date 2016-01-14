@@ -9,6 +9,7 @@ var statuses = {
 };
 var update = require('react-addons-update');
 var server = require('../server');
+var schemas = require('../schemas');
 
 var QuestPage = React.createClass({
 	getInitialState: function() {
@@ -19,14 +20,14 @@ var QuestPage = React.createClass({
 		};
 	},
 	componentDidMount: function() {
-		var questId = cs.getQueryValue(document.location.search, 'quest_id');
+		var wishId = cs.getQueryValue(document.location.search, 'quest_id');
 
 		bella.data.user.subscribe((user) => {
 			this.setState({ loggedIn: user.status === bella.constants.userStatus.LOGGED_IN});
 		});
 
-		if(questId) {
-			server.data.wish.get(questId, (result, wish) => {
+		if(wishId) {
+			server.wish.get(wishId, (result, wish) => {
 				if(result.success) {
 					this.setState({
 						quest: wish,
@@ -43,7 +44,7 @@ var QuestPage = React.createClass({
 		}
 		else {
 			this.setState({
-				quest: factory.quest(bella.data.user.get()),
+				quest: schemas.wish.blank(),
 				status: statuses.READY
 			});
 		}
@@ -82,14 +83,14 @@ var QuestPage = React.createClass({
 		this.setState({ status: statuses.SAVING });
 
 		cs.post('/quest', update(this.state.quest, { title: { $set: title }, description: { $set: description } }), (response) => {
-			if(response.result === bella.constants.server.result.SUCCESS) {
+			if(response.result === bella.constants.response.OK) {
 				window.location.href = '/quest_list.html';
 				//this.setState({
 				//	quest: factory.quest(response.data.user, response.data),
 				//	status: statuses.READY
 				//});
 			}
-			if(response.result === bella.constants.server.result.FAIL) {
+			if(response.result === bella.constants.response.NOT_FOUND) {
 				console.error('post quest error');
 			}
 		});
@@ -113,7 +114,7 @@ var RCQuest = React.createClass({
 		var description = this.state.edit ?
 			(<textarea cols="30" rows="10" defaultValue={this.props.quest.description} ref="description"></textarea>) :
 			(<span>{this.props.quest.description}</span>);
-		var user = this.props.quest.user.id ?
+		var user = this.props.quest.user ?
 			(<tr>
 				<td>user:</td>
 				<td>{this.props.quest.user.name}</td>
