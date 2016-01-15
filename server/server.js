@@ -146,11 +146,8 @@ app.get('/logout', function(req, res) {
 	res.cookie('token', 'expired').send();
 });
 
-app.get('/quest_list', function(req, res) {
-	res.send({
-		result: 'SUCCESS',
-		data: _.map(questList, q => getQuest(q.id))
-	});
+app.get('/wishList', function(req, res) {
+	res.send(_.map(questList, q => getQuest(q.id)));
 });
 
 app.get('/wish', function(req, res) {
@@ -158,33 +155,28 @@ app.get('/wish', function(req, res) {
 	data ? res.send(data) : res.status(404).send();
 });
 
-app.post('/quest', function(req, res) {
+app.post('/wish', function(req, res) {
 	if(authorize(req)) {
 		if(req.body.id) {
 			if(questList[req.body.id].userId === req.cookies.user_id) {
 				questList[req.body.id] = setQuest(req.body);
-				res.send({
-					result: 'SUCCESS',
-					data: getQuest(req.body.id)
-				});
+				res.send(getQuest(req.body.id));
 				console.log(questList);
 			}
 			else {
-				res.send({ result: 'FAIL' });
+				res.status(500).send();
 			}
 		}
+
 		else {
 			var rId = randomString(10);
 			questList[rId] = setQuest(req.body, rId, req.cookies.user_id);
 			console.log(questList);
-			res.send({
-				result: 'SUCCESS',
-				data: getQuest(rId)
-			});
+			res.send(getQuest(rId));
 		}
 	}
 	else {
-		res.send({ result: 'FAIL' });
+		res.status(500).send();
 	}
 });
 

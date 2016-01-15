@@ -1,16 +1,20 @@
 var cs = require('../helpers/cs');
+var server = require('../server');
 
 var QuestListPage = React.createClass({
+	getInitialState: function() {
+		return { loggedIn: bella.data.user.get().status === bella.constants.userStatus.LOGGED_IN }
+	},
 	componentDidMount: function() {
 		bella.data.user.subscribe((user) => {
-			// do what you want!
+			this.setState({ loggedIn: user.status === bella.constants.userStatus.LOGGED_IN });
 		});
 	},
 	render: function() {
 		return (
 			<div className="bc-quest-list-page">
 				<h1>Quests</h1>
-				<QuestList />
+				<QuestList loggedIn={this.state.loggedIn} />
 			</div>
 		);
 	}
@@ -21,8 +25,8 @@ var QuestList = React.createClass({
 		return { questList: {} }
 	},
 	componentDidMount: function() {
-		cs.get('quest_list', (response) => {
-			this.setState({questList: response.data});
+		server.wishList.get((result, wishList) => {
+			this.setState({ questList: wishList });
 		});
 	},
 	render: function() {
@@ -36,9 +40,11 @@ var QuestList = React.createClass({
 			);
 		});
 
+		var newWish = this.props.loggedIn ? (<div><a href="/quest.html">New Quest</a></div>) : null;
+
 		return (
 			<div className="bc-quest-list">
-				<a href="/quest.html">New Quest</a><br />
+				{newWish}
 				{questList}
 			</div>
 		);

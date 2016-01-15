@@ -18,8 +18,28 @@ module.exports = {
 				}
 			});
 		},
-		post: function(wish) {
-			cs.post('/quest')
+		post: function(wish, callback) {
+			var validation = inspector.validate(schemas.wish.client, wish);
+			if(validation.valid) {
+				cs.post('/wish', schemas.wish.clientToServer(wish), (status) => {
+					if(status === bella.constants.response.OK) callback({ success: true });
+				});
+			}
+		}
+	},
+	wishList: {
+		get: function(callback) {
+			cs.get('/wishList', (status, wishList) => {
+				if(status === bella.constants.response.OK) {
+					var validation = inspector.validate(schemas.wishList.server, wishList);
+					console.log('vaildation', validation);
+					if(!validation.valid) console.error('wishList server validation error');
+					callback({ success: true }, wishList);
+				}
+				else {
+					console.error('wishList ajax error');
+				}
+			});
 		}
 	},
 	userStatus: {

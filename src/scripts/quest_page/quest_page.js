@@ -16,7 +16,7 @@ var QuestPage = React.createClass({
 		return {
 			status: statuses.INIT,
 			quest: {},
-			loggedIn: bella.data.user.status === bella.constants.userStatus.LOGGED_IN
+			loggedIn: bella.data.user.get().status === bella.constants.userStatus.LOGGED_IN
 		};
 	},
 	componentDidMount: function() {
@@ -44,7 +44,7 @@ var QuestPage = React.createClass({
 		}
 		else {
 			this.setState({
-				quest: schemas.wish.blank(),
+				quest: schemas.wish.blank(bella.data.user.get()),
 				status: statuses.READY
 			});
 		}
@@ -81,17 +81,12 @@ var QuestPage = React.createClass({
 	},
 	save: function(title, description) {
 		this.setState({ status: statuses.SAVING });
-
-		cs.post('/quest', update(this.state.quest, { title: { $set: title }, description: { $set: description } }), (response) => {
-			if(response.result === bella.constants.response.OK) {
+		server.wish.post(update(this.state.quest, { title: { $set: title }, description: { $set: description } }), (result) => {
+			if(result.success) {
+				this.setState({
+					status: statuses.SAVING
+				});
 				window.location.href = '/quest_list.html';
-				//this.setState({
-				//	quest: factory.quest(response.data.user, response.data),
-				//	status: statuses.READY
-				//});
-			}
-			if(response.result === bella.constants.response.NOT_FOUND) {
-				console.error('post quest error');
 			}
 		});
 	}
