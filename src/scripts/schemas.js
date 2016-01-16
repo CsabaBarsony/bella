@@ -41,11 +41,13 @@ var wish = {
 		}
 	},
 	clientToServer: function(obj) {
-		return {
+		var wish = {
 			user: obj.user,
 			description: obj.description,
 			title: obj.title
-		}
+		};
+		if(obj.id) wish.id = obj.id;
+		return wish;
 	},
 	serverToClient: function(obj) {
 		obj.dirty = false;
