@@ -7,6 +7,16 @@ var path = require("path");
 var bodyParser = require("body-parser");
 var cookie = require('cookie-parser');
 var portNumber = 3000;
+var dbClient = require('mongodb').MongoClient;
+var url = 'mongodb://localhost:9000/bella';
+
+dbClient.connect(url, (err, db) => {
+	if(err) return;
+
+	
+
+	db.close();
+});
 
 var users = {
 	'1': {
@@ -122,6 +132,23 @@ app.post("/login", function(req, res){
 });
 
 app.get('/userStatus', function(req, res) {
+	dbClient.connect(url, (err, db) => {
+		if(err) return;
+		return;
+
+		var cursor = db.collection('user').find();
+		cursor.each((user, x, y) => {
+			console.log(user, x, y);
+		});
+		return;
+
+		db.collection('user').insertOne({
+			name: 'Csati',
+			clever: true
+		});
+
+		db.close();
+	});
 	var user = users[req.cookies.user_id];
 	if(user) {
 		var userData = getUser(user.id);
