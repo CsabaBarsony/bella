@@ -1,19 +1,77 @@
 var cs = require('../../helpers/cs');
 var schemas = require('../../schemas');
 var server = require('../../server');
+var statuses = {
+	GUEST: 'GUEST',
+	USER: 'USER',
+	REGISTER: 'REGISTER'
+};
+var stateChart = Stativus.createStatechart();
 
 var User = React.createClass({
 	getInitialState: function() {
 		var user = schemas.user.blank();
 
 		return {
-			status: user.status,
+			status: statuses.GUEST,
 			userName: user.name,
 			opened: false,
 			errorMessage: ''
 		}
 	},
 	componentDidMount: function() {
+		stateChart.addState('small', {
+			enterState: function() {
+				console.log('small enter')
+			},
+			myEvent1: function() {
+				this.goToState('big');
+			},
+			initialSubstate: 'red',
+			states: [
+				{
+					name: 'red',
+					enterState: function() {
+						console.log('red enter')
+					},
+					triggerRed: function() {
+						this.goToState('blue');
+					}
+				},
+				{
+					name: 'yellow',
+					enterState: function() {
+						console.log('yellow enter')
+					}
+				}
+			]
+		});
+
+		stateChart.addState('big', {
+			enterState: function() {
+				console.log('big enter')
+			},
+			myEvent2: function() {
+				this.goToState('small');
+			},
+			states: [
+				{
+					name: 'green',
+					enterState: function() {
+						console.log('green enter')
+					}
+				},
+				{
+					name: 'blue',
+					enterState: function() {
+						console.log('blue enter')
+					}
+				}
+			]
+		});
+
+		stateChart.initStates('small');
+
 		bella.data.user.subscribe((user) => {
 			this.setState({
 				status: user.status,
@@ -31,6 +89,8 @@ var User = React.createClass({
 		}
 	},
 	render: function() {
+		return (<button onClick={this.test}>click</button>);
+
 		if(this.state.status === bella.constants.userStatus.GUEST) {
 			var errorMessage = this.state.errorMessage ?
 				(
@@ -42,7 +102,8 @@ var User = React.createClass({
 					{errorMessage}
 					<input type="text" ref="name" defaultValue="a" /><br />
 					<input type="text" ref="password" defaultValue="1" /><br />
-					<button onClick={this.login}>Login</button>
+					<button onClick={this.login}>Login</button><br />
+					<a href="" onClick={this.register}>register</a>
 				</div>
 			) : null;
 
@@ -67,6 +128,9 @@ var User = React.createClass({
 				</div>
 			);
 		}
+	},
+	test: function() {
+		stateChart.sendEvent('triggerRed');
 	},
 	click: function(e) {
 		e.preventDefault();
@@ -98,6 +162,9 @@ var User = React.createClass({
 				this.setState({ opened: false });
 			}
 		});
+	},
+	register: function(e) {
+		e.preventDefault();
 	}
 });
 

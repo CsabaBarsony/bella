@@ -9,33 +9,16 @@ var cookie = require('cookie-parser');
 var portNumber = 3000;
 
 var mysql = require('mysql');
-var connection = mysql.createConnection({
+var db = mysql.createConnection({
 	host: 'localhost',
 	user: 'root',
 	password: '',
 	database: 'bella'
 });
 
-connection.connect();
+db.connect();
 
-connection.query("SELECT * FROM wish inner join user on user.id = wish.user_id where user.id = 1", (err, rows) => {
-	console.log(err, rows);
-});
-
-var users = {
-	'1': {
-		id: '1',
-		name: 'a',
-		password: '1',
-		token: false
-	},
-	'2': {
-		id: '2',
-		name: 'b',
-		password: '2',
-		token: false
-	}
-};
+var userTokens = {};
 
 var questList = {
 	'1': {
@@ -55,12 +38,12 @@ var questList = {
 function getQuest(id) {
 	var quest = questList[id];
 	if(quest) {
-		var user = users[quest.userId];
+		var user = userTokens[quest.userId];
 
 		return {
 			id: quest.id,
 			title: quest.title,
-			description: quest.description,
+			descrjiption: quest.description,
 			user: {
 				id: user.id,
 				name: user.name
@@ -81,9 +64,7 @@ function setQuest(quest, rId, userId) {
 	};
 }
 
-function getUser(id) {
-	var user = users[id];
-
+function getUser(user) {
 	return {
 		id: user.id,
 		name: user.name
@@ -102,7 +83,7 @@ function randomString(length) {
 
 function authorize(req) {
 	if(!req.cookies || !req.cookies.user_id || !req.cookies.token ) return false;
-	return users[req.cookies.user_id].token === req.cookies.token;
+	return userTokens[req.cookies.user_id].token === req.cookies.token;
 }
 
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -116,51 +97,60 @@ app.listen(portNumber);
 
 console.log("Server is running on port " + portNumber + "...");
 
-app.post("/login", function(req, res){
-	var user = _.find(users, (user) => {
-		return user.name === req.body.username;
-	});
-	if(user.password === req.body.password) {
-		var random = randomString(32);
-		user.token = random;
-		res.cookie('user_id', user.id);
-		res.cookie('token', random);
-		var userData = getUser(user.id);
-		userData.status = 'LOGGED_IN';
+app.post('/login', function(req, res){
+	db.query('select * from user where name = \'' + req.body.username + '\'', (err, rows) => {
+		if(rows.length === 1) {
+			var user = rows[0];
+			if(user.password === req.body.password) {
+				var random = randomString(32);
+				userTokens[user.id] = random;
+				res.cookie('user_id', user.id);
+				res.cookie('token', random);
+				var userData = getUser(user);
+				userData.status = 'LOGGED_IN';
 
-		res.send(userData);
+				res.send(userData);
+			}
+			else res.status(404).send('wrong password');
+		}
+		else {
+			res.status(404).send('wrong username');
+		}
+	});
+});
+
+app.get('/userStatus', function(req, res) {
+	var user = userTokens[req.cookies.user_id];
+	if(user) {
+		var userStatus = user.token === req.cookies.token ? 'LOGGED_IN' : 'GUEST';
+		db.query('select * from user where id = ' + req.cookies.user_id, (err, rows) => {
+			if(!err && rows.length === 1) {
+				var userData = getUser(rows[0]);
+				userData.status = userStatus;
+				res.send(userData);
+			}
+			else {
+				res.status(404).send('wrong user');
+			}
+		});
 	}
 	else {
 		res.status(404).send();
 	}
 });
 
-app.get('/userStatus', function(req, res) {
-	var user = users[req.cookies.user_id];
-	if(user) {
-		var userData = getUser(user.id);
-		if(user.token === req.cookies.token) {
-			userData.status = 'LOGGED_IN';
-		}
-		else {
-			userData.status = 'GUEST';
-		}
-		res.send(userData);
-	}
-	res.status(404).send();
-});
-
 app.get('/logout', function(req, res) {
-	var user = users[req.cookies.user_id];
-
-	if(user) {
-		user.token = false;
+	if(userTokens[req.cookies.user_id]) {
+		userTokens[req.cookies.user_id] = null;
 	}
 
 	res.cookie('token', 'expired').send();
 });
 
 app.get('/wishList', function(req, res) {
+	db.query('select * from wish', (err, rows) => {
+		res.send()
+	});
 	res.send(_.map(questList, q => getQuest(q.id)));
 });
 
